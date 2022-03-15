@@ -32,6 +32,10 @@ class ErrorHandlingCog(ACog):
             case comms.UserInputError():
                 title = 'User Input Error'
                 description = 'Something about your input was wrong, please check and try again.'
+            case comms.CheckFailure():
+                title = 'Check Failure'
+                description = 'You are not allowed to use this command, if you believe this is in error contact an ' \
+                              'administrator.'
             case _:
                 title = f'Command Error ({type(error).__name__})'
                 description = 'Something went wrong with the command you entered. '\
