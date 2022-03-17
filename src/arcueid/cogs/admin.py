@@ -6,6 +6,7 @@ import discord.ext.commands as comms
 from .abc import ACog
 
 from ..context import ArcContext
+from ..datastructures import ExitStatus
 from ..helper import plural
 
 
@@ -29,7 +30,7 @@ class AdminCog(ACog):
 
         cogs = list(sorted(self.bot.cogs))
 
-        await ctx.replyEmbed('Currently Loaded Cogs', ', '.join(cogs))
+        await ctx.replyEmbed(f'Currently Loaded {plural(len(cogs), "Cog", "Cogs")}', ', '.join(cogs))
 
     @cogs.command()
     @comms.cooldown(rate=1, per=30)
@@ -43,6 +44,22 @@ class AdminCog(ACog):
         embed.add_field(name='Loaded', value=str(data.loaded), inline=True)
 
         await ctx.reply(embed=embed)
+
+    @comms.command(aliases=('close', 'logout'))
+    async def exit(self, ctx: ArcContext) -> None:
+        await ctx.replyEmbed('Exiting', 'Logging off. ♥')
+
+        self.bot.exitStatus = ExitStatus.EXIT
+
+        await self.bot.close()
+
+    @comms.command(aliases=('reload',))
+    async def restart(self, ctx: ArcContext, reload: bool = True) -> None:
+        await ctx.replyEmbed('Restarting', f'Restarting {"with" if reload else "without"} reloading.')
+
+        self.bot.exitStatus = ExitStatus.RESTART if reload else ExitStatus.RESTART_NO_RELOAD
+
+        await self.bot.close()
 
     @property
     def color(self) -> Optional[discord.Color]:

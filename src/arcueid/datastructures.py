@@ -1,8 +1,11 @@
 from dataclasses import dataclass
 
+from enum import Enum, auto
+
 
 __all__ = [
-    'LoadedCogs'
+    'LoadedCogs',
+    'ExitStatus'
 ]
 
 
@@ -24,3 +27,9 @@ class LoadedCogs:
         reloaded = len(removed.intersection(loaded))
 
         return cls(len(removed) - reloaded, reloaded, len(loaded) - reloaded)
+
+
+class ExitStatus(Enum):
+    EXIT = auto()
+    RESTART = auto()
+    RESTART_NO_RELOAD = auto()

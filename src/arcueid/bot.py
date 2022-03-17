@@ -10,7 +10,7 @@ import discord.ext.commands as comms
 
 from .cogs.abc import ACog
 from .context import ArcContext
-from .datastructures import LoadedCogs
+from .datastructures import LoadedCogs, ExitStatus
 from .settings import Settings
 
 __all__ = [
@@ -19,18 +19,14 @@ __all__ = [
 
 
 class ArcBot(comms.Bot):
-    def __init__(self, settings: Settings, level: int) -> None:
-        super().__init__(comms.when_mentioned_or('arc.'))
+    def __init__(self, settings: Settings) -> None:
+        super().__init__(comms.when_mentioned_or('arc.'), status=discord.Status.idle)
+
+        self.exitStatus = ExitStatus.EXIT
 
         self.settings = settings
 
         self.logger = logging.getLogger('arcueid')
-        self.logger.setLevel(level)
-
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-
-        self.logger.addHandler(handler)
 
         self.cogModule = import_module('.cogs', 'arcueid')
 
@@ -60,6 +56,7 @@ class ArcBot(comms.Bot):
         return await super().get_context(message, cls=cls)
 
     async def on_ready(self) -> None:
+        await self.change_presence(status=discord.Status.online)
         self.logger.info('Arcueid Ready')
 
     def getCurrentVC(self, guild: discord.Guild) -> Optional[discord.VoiceClient]:
@@ -68,5 +65,5 @@ class ArcBot(comms.Bot):
                 return vc
         return None
 
-    def launch(self) -> None:
-        self.run(self.settings.token)
+    async def launch(self) -> None:
+        await self.start(self.settings.token)

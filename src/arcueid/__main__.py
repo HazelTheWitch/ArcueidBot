@@ -1,11 +1,16 @@
+import asyncio
+import contextlib
 import json
 import logging
+import sys
+from importlib import reload
 from pathlib import Path
 
 import click
 
+from src.arcueid.datastructures import ExitStatus
 from .settings import Settings
-from .bot import ArcBot
+from . import bot as abot
 
 
 __all__ = [
@@ -20,6 +25,15 @@ VERBOSITY = [
     logging.INFO,
     logging.DEBUG
 ]
+
+
+@contextlib.contextmanager
+def eventLoop():
+    loop = asyncio.new_event_loop()
+
+    asyncio.set_event_loop(loop)
+
+    yield loop
 
 
 @click.command()
@@ -41,9 +55,38 @@ def launch(path: str, verbose: int) -> None:
 
     data = Settings.load(settingsPath)
 
-    bot = ArcBot(data, VERBOSITY[min(verbose, 3)])
+    verbosity = VERBOSITY[min(verbose, 3)]
 
-    bot.launch()
+    logger = logging.getLogger('arcueid')
+    logger.setLevel(verbosity)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+
+    logger.addHandler(handler)
+
+    with eventLoop() as loop:
+        loop.run_until_complete(mainLoop(data,))
+
+
+async def mainLoop(data: Settings) -> None:
+    while True:
+        bot = abot.ArcBot(data)
+
+        try:
+            await bot.launch()
+        except KeyboardInterrupt:
+            await bot.close()
+            return
+
+        # Have to include .value for some godforsaken reason
+        match bot.exitStatus.value:
+            case ExitStatus.EXIT.value:
+                return
+            case ExitStatus.RESTART.value:
+                reload(abot)
+            case ExitStatus.RESTART_NO_RELOAD.value:
+                pass
 
 
 if __name__ == '__main__':
