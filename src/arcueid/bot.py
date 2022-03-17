@@ -3,7 +3,7 @@ import logging
 import sys
 from importlib import import_module
 from inspect import getmembers
-from typing import Coroutine, Any
+from typing import Coroutine, Any, Optional
 
 import discord
 import discord.ext.commands as comms
@@ -61,6 +61,12 @@ class ArcBot(comms.Bot):
 
     async def on_ready(self) -> None:
         self.logger.info('Arcueid Ready')
+
+    def getCurrentVC(self, guild: discord.Guild) -> Optional[discord.VoiceClient]:
+        for vc in self.voice_clients:
+            if vc.channel.guild == guild:
+                return vc
+        return None
 
     def launch(self) -> None:
         self.run(self.settings.token)
