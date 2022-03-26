@@ -9,7 +9,8 @@ setup(
     python_requires='>=3.10, <4',
     install_requires=[
         'discord.py[voice]',
-        'click'
+        'click',
+        'pytz'
     ],
     entry_points={
         'console_scripts': [

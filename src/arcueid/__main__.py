@@ -8,7 +8,7 @@ from pathlib import Path
 
 import click
 
-from src.arcueid.datastructures import ExitStatus
+from .datastructures import ExitStatus
 from .settings import Settings
 from . import bot as abot
 

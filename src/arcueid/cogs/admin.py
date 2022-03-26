@@ -1,7 +1,9 @@
+from datetime import datetime
 from typing import Optional
 
 import discord
 import discord.ext.commands as comms
+import pytz as pytz
 
 from .abc import ACog
 
@@ -22,6 +24,20 @@ class AdminCog(ACog):
     @comms.command(aliases=('ping',))
     async def latency(self, ctx: ArcContext) -> None:
         await ctx.replyEmbed('Current Latency', f'Current latency is {int(self.bot.latency * 1000)} ms.')
+
+    @comms.command()
+    async def joy(self, ctx: ArcContext) -> None:
+        now = pytz.timezone('US/Pacific').localize(datetime.now())
+
+        target = pytz.timezone('US/Pacific').localize(datetime(2022, 5, 28))
+
+        difference = target - now
+
+        days = difference.days
+        hours = difference.seconds // 3600
+        minutes = (difference.seconds // 60) % 60
+
+        await ctx.replyEmbed('Time Until Joy', f'{days} days, {hours} hours, {minutes} minutes')
 
     @comms.group()
     async def cogs(self, ctx: ArcContext) -> None:
