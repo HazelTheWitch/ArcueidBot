@@ -1,9 +1,8 @@
 import importlib
 import logging
-import sys
 from importlib import import_module
 from inspect import getmembers
-from typing import Coroutine, Any, Optional
+from typing import Optional
 
 import discord
 import discord.ext.commands as comms
@@ -28,7 +27,7 @@ class ArcBot(comms.Bot):
 
         self.logger = logging.getLogger('arcueid')
 
-        self.cogModule = import_module('.cogs', 'arcueid')
+        self.cogModule = import_module('arcueid.cogs', 'arcueid')
 
         self.logger.info(self.loadCogs(False))
 
@@ -40,7 +39,7 @@ class ArcBot(comms.Bot):
             self.logger.debug(f'Removed cog: {name}')
 
         if reload:
-            self.cogModule = importlib.reload(self.cogModule)
+            cogs = importlib.reload(self.cogModule)
             self.logger.debug('Reloaded cogs module')
 
         for name, cog in getmembers(self.cogModule):
@@ -67,3 +66,12 @@ class ArcBot(comms.Bot):
 
     async def launch(self) -> None:
         await self.start(self.settings.token)
+
+    async def close(self) -> None:
+        for guild in self.guilds:
+            vc = self.getCurrentVC(guild)
+
+            if vc is not None:
+                await vc.disconnect(force=True)
+
+        await super().close()

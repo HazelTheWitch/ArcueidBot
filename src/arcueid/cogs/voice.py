@@ -1,7 +1,11 @@
+import asyncio
+import importlib.resources
+from datetime import datetime, timedelta
 from typing import Optional
 
 import discord
 import discord.ext.commands as comms
+import pytz
 
 from .abc import ACog
 
@@ -45,7 +49,6 @@ class VoiceCog(ACog):
         await ctx.replyEmbed('Voice Disconnected', 'Successfully disconnected from the voice channel.')
 
     @comms.command(aliases=('move',))
-    @comms.has_permissions(move_members=True)
     async def drag(self, ctx: ArcContext) -> None:
         voice = ctx.author.voice
 
@@ -75,6 +78,57 @@ class VoiceCog(ACog):
                                                                             'from '
                                                                             f'**{fromVClient.channel.name}** to '
                                                                             f'**{toVC.name}**')
+
+    @comms.command()
+    async def alarm(self, ctx: ArcContext, hour: int, minute: int, timezone: str) -> None:
+        try:
+            tz = pytz.timezone(timezone)
+        except pytz.UnknownTimeZoneError:
+            await ctx.replyEmbed('Invalid Timezone', f'The timezone "{timezone}" you entered is not valid.')
+            return
+
+        if not (0 <= hour < 24):
+            await ctx.replyEmbed('Invalid Hour', f'The hour "{hour}" you entered is not valid.')
+            return
+
+        if not (0 <= minute < 60):
+            await ctx.replyEmbed('Invalid Minute', f'The hour "{minute}" you entered is not valid.')
+            return
+
+        voice = ctx.author.voice
+
+        if voice is None or voice.channel is None:
+            await ctx.replyEmbed('Voice Channel Error', 'You are not in a voice channel so I can not play an alarm.')
+            return
+
+        currentVC = self.bot.getCurrentVC(ctx.guild)
+
+        if currentVC is not None:
+            await currentVC.disconnect()
+
+        await voice.channel.connect()
+
+        now = pytz.timezone('US/Pacific').localize(datetime.now()).astimezone(tz)
+
+        targetTime = tz.localize(datetime(now.year, now.month, now.day, hour, minute))
+
+        if targetTime < now:
+            targetTime += timedelta(days=1)
+
+        seconds = (targetTime - now).total_seconds()
+
+        await asyncio.sleep(seconds)
+
+        with importlib.resources.path('arcueid.data', 'alarm.wav') as sourcePath:
+            print(sourcePath)
+
+            source = discord.FFmpegPCMAudio(str(sourcePath.resolve()))
+
+            currentVC = self.bot.getCurrentVC(ctx.guild)
+
+            currentVC.play(source)
+
+            await ctx.replyEmbed('Alarm Up', 'Your alarm has been triggered!')
 
     @property
     def color(self) -> Optional[discord.Color]:

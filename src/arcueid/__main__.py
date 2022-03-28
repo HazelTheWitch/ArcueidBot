@@ -1,6 +1,5 @@
 import asyncio
 import contextlib
-import json
 import logging
 import sys
 from importlib import reload

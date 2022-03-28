@@ -12,6 +12,9 @@ setup(
         'click',
         'pytz'
     ],
+    package_data={
+        'data': ['*.*']
+    },
     entry_points={
         'console_scripts': [
             'arcueid_settings=arcueid.__main__:generateSettings',

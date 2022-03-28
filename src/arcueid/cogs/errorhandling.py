@@ -39,7 +39,7 @@ class ErrorHandlingCog(ACog):
             case _:
                 title = f'Command Error ({type(error).__name__})'
                 description = 'Something went wrong with the command you entered. '\
-                              f'```{"".join(traceback.format_exception(cast(Type[BaseException], error), limit=1))}```' \
+                              f'```{"".join(traceback.format_exception(cast(Type[BaseException], error), limit=10))}```' \
                               'Please contact Harlot#0001 about this.'
 
         await ctx.replyEmbed(title=title, description=description, error=True)
