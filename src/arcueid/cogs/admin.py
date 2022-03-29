@@ -8,7 +8,7 @@ import pytz as pytz
 from .abc import ACog
 
 from ..context import ArcContext
-from ..datastructures import ExitStatus
+from ..datastructures import ExitStatus, MessageData
 from ..helper import plural
 
 
@@ -48,19 +48,6 @@ class AdminCog(ACog):
 
         await ctx.replyEmbed(f'Currently Loaded {plural(len(cogs), "Cog", "Cogs")}', ', '.join(cogs))
 
-    @cogs.command()
-    @comms.cooldown(rate=1, per=30)
-    async def reload(self, ctx: ArcContext) -> None:
-        data = self.bot.loadCogs(True)
-
-        embed = ctx.generateEmbed('Cogs Reloaded', f'{plural(data.total, "cog", "cogs")} changed.')
-
-        embed.add_field(name='Removed', value=str(data.removed), inline=True)
-        embed.add_field(name='Reloaded', value=str(data.reloaded), inline=True)
-        embed.add_field(name='Loaded', value=str(data.loaded), inline=True)
-
-        await ctx.reply(embed=embed)
-
     @comms.command(aliases=('close', 'logout'))
     async def exit(self, ctx: ArcContext) -> None:
         await ctx.replyEmbed('Exiting', 'Logging off. ♥')
@@ -71,7 +58,9 @@ class AdminCog(ACog):
 
     @comms.command(aliases=('reload',))
     async def restart(self, ctx: ArcContext, reload: bool = True) -> None:
-        await ctx.replyEmbed('Restarting', f'Restarting {"with" if reload else "without"} reloading.')
+        msg = await ctx.replyEmbed('Restarting', f'Restarting {"with" if reload else "without"} reloading.')
+
+        self.bot.passthrough.restartMessage = MessageData.fromMessage(msg)
 
         self.bot.exitStatus = ExitStatus.RESTART if reload else ExitStatus.RESTART_NO_RELOAD
 

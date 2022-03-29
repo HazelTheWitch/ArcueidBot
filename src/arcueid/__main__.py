@@ -7,7 +7,7 @@ from pathlib import Path
 
 import click
 
-from .datastructures import ExitStatus
+from .datastructures import ExitStatus, PassthroughInfo
 from .settings import Settings
 from . import bot as abot
 
@@ -69,14 +69,18 @@ def launch(path: str, verbose: int) -> None:
 
 
 async def mainLoop(data: Settings) -> None:
+    passthrough = PassthroughInfo()
+
     while True:
-        bot = abot.ArcBot(data)
+        bot = abot.ArcBot(data, passthrough)
 
         try:
             await bot.launch()
         except KeyboardInterrupt:
             await bot.close()
             return
+
+        passthrough = bot.passthrough
 
         # Have to include .value for some godforsaken reason
         match bot.exitStatus.value:

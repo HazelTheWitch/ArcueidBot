@@ -26,6 +26,6 @@ class ArcContext(comms.Context):
 
         return discord.Embed(title=title, description=description, color=color)
 
-    async def replyEmbed(self, title: str, description: str, *, error: bool = False) -> None:
+    async def replyEmbed(self, title: str, description: str, *, error: bool = False) -> discord.Message:
         """Reply using a themed Discord embed"""
-        await self.reply(embed=self.generateEmbed(title, description, error=error))
+        return await self.reply(embed=self.generateEmbed(title, description, error=error))

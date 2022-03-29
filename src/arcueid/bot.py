@@ -10,7 +10,7 @@ import discord.ext.commands as comms
 from . import cogs
 from .cogs.abc import ACog
 from .context import ArcContext
-from .datastructures import LoadedCogs, ExitStatus
+from .datastructures import LoadedCogs, ExitStatus, PassthroughInfo
 from .settings import Settings
 
 __all__ = [
@@ -19,10 +19,12 @@ __all__ = [
 
 
 class ArcBot(comms.Bot):
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, passthrough: PassthroughInfo) -> None:
         super().__init__(comms.when_mentioned_or('arc.'), status=discord.Status.idle)
 
         self.exitStatus = ExitStatus.EXIT
+
+        self.passthrough = passthrough
 
         self.settings = settings
 
@@ -55,6 +57,10 @@ class ArcBot(comms.Bot):
     async def on_ready(self) -> None:
         game = discord.Game(f'with {len(self.commands)} commands')
         await self.change_presence(status=discord.Status.online, activity=game)
+
+        if self.passthrough.restartMessage is not None:
+            await (await self.passthrough.restartMessage.fetchMessage(self)).add_reaction('♥')
+
         self.logger.info('Arcueid Ready')
 
     def getCurrentVC(self, guild: discord.Guild) -> Optional[discord.VoiceClient]:

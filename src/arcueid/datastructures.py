@@ -8,6 +8,10 @@ __all__ = [
     'ExitStatus'
 ]
 
+from typing import Optional
+
+import discord
+
 
 @dataclass(frozen=True)
 class LoadedCogs:
@@ -33,3 +37,24 @@ class ExitStatus(Enum):
     EXIT = auto()
     RESTART = auto()
     RESTART_NO_RELOAD = auto()
+
+
+@dataclass(frozen=True)
+class MessageData:
+    guild: int
+    channel: int
+    message: int
+
+    async def fetchMessage(self, client: discord.Client) -> discord.Message:
+        guild = client.get_guild(self.guild)
+        channel = guild.get_channel(self.channel)
+        return await channel.fetch_message(self.message)
+
+    @classmethod
+    def fromMessage(cls, msg: discord.Message) -> 'MessageData':
+        return cls(msg.guild.id, msg.channel.id, msg.id)
+
+
+@dataclass
+class PassthroughInfo:
+    restartMessage: Optional[MessageData] = None
