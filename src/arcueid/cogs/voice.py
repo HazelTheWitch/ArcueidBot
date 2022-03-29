@@ -49,6 +49,7 @@ class VoiceCog(ACog):
         await ctx.replyEmbed('Voice Disconnected', 'Successfully disconnected from the voice channel.')
 
     @comms.command(aliases=('move',))
+    # TODO: Add @comms.require_permissions(move_members=True) and figure out why it wont work
     async def drag(self, ctx: ArcContext) -> None:
         voice = ctx.author.voice
 

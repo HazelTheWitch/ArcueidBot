@@ -7,6 +7,7 @@ from typing import Optional
 import discord
 import discord.ext.commands as comms
 
+from . import cogs
 from .cogs.abc import ACog
 from .context import ArcContext
 from .datastructures import LoadedCogs, ExitStatus
@@ -27,8 +28,6 @@ class ArcBot(comms.Bot):
 
         self.logger = logging.getLogger('arcueid')
 
-        self.cogModule = import_module('arcueid.cogs', 'arcueid')
-
         self.logger.info(self.loadCogs(False))
 
     def loadCogs(self, reload: bool = True) -> LoadedCogs:
@@ -39,10 +38,9 @@ class ArcBot(comms.Bot):
             self.logger.debug(f'Removed cog: {name}')
 
         if reload:
-            cogs = importlib.reload(self.cogModule)
-            self.logger.debug('Reloaded cogs module')
+            importlib.reload(cogs)
 
-        for name, cog in getmembers(self.cogModule):
+        for name, cog in getmembers(cogs):
             if hasattr(cog, '__mro__') and ACog in cog.mro():
                 self.add_cog(cog(self))
                 self.logger.debug(f'Added cog: {name}')
@@ -55,7 +53,8 @@ class ArcBot(comms.Bot):
         return await super().get_context(message, cls=cls)
 
     async def on_ready(self) -> None:
-        await self.change_presence(status=discord.Status.online)
+        game = discord.Game(f'with {len(self.commands)} commands')
+        await self.change_presence(status=discord.Status.online, activity=game)
         self.logger.info('Arcueid Ready')
 
     def getCurrentVC(self, guild: discord.Guild) -> Optional[discord.VoiceClient]:
@@ -73,5 +72,7 @@ class ArcBot(comms.Bot):
 
             if vc is not None:
                 await vc.disconnect(force=True)
+
+        await self.change_presence(status=discord.Status.invisible)
 
         await super().close()
