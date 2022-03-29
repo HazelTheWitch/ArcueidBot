@@ -5,7 +5,9 @@ from enum import Enum, auto
 
 __all__ = [
     'LoadedCogs',
-    'ExitStatus'
+    'ExitStatus',
+    'MessageData',
+    'PassthroughInfo'
 ]
 
 from typing import Optional

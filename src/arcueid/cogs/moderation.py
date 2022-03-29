@@ -5,6 +5,7 @@ import discord.ext.commands as comms
 
 from .abc import ACog
 from ..context import ArcContext
+from ..helper import titleCapitalization
 
 __all__ = [
     'ModCog'
@@ -39,6 +40,27 @@ class ModCog(ACog):
         embed.add_field(name='Boosted Tier', value=str(guild.premium_tier), inline=True)
         embed.add_field(name='Booster Count', value=str(guild.premium_subscription_count), inline=True)
         embed.add_field(name='Boost Role Name', value=str(premiumRoleName), inline=True)
+
+        await ctx.reply(embed=embed)
+
+    @comms.command()
+    async def info(self, ctx: ArcContext, member: discord.Member) -> None:
+        if member is None:
+            await ctx.replyEmbed('Info Error', f'Could not find details for given member.')
+            return
+
+        embed = ctx.generateEmbed('User Info', f'Generated information for **{member.display_name}** in server '
+                                               f'**{member.guild.name}**.')
+
+        embed.add_field(name='Display Name', value=member.display_name, inline=True)
+        embed.add_field(name='Name', value=f'{member.name}#{member.discriminator}', inline=True)
+        embed.add_field(name='Nickname', value=member.nick, inline=True)
+
+        embed.add_field(name='Is Bot', value=str(member.bot), inline=True)
+        embed.add_field(name='Status', value=titleCapitalization(member.status.value), inline=True)
+        embed.add_field(name='Joined At', value=member.joined_at.strftime('%Y/%m/%d %H:%M:%S UTC'))
+
+        embed.set_image(url=member.avatar_url)
 
         await ctx.reply(embed=embed)
 

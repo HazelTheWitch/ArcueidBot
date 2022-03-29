@@ -1,6 +1,5 @@
 import importlib
 import logging
-from importlib import import_module
 from inspect import getmembers
 from typing import Optional
 
@@ -30,7 +29,7 @@ class ArcBot(comms.Bot):
 
         self.logger = logging.getLogger('arcueid')
 
-        self.logger.info(self.loadCogs(False))
+        self.logger.info(self.loadCogs(True))
 
     def loadCogs(self, reload: bool = True) -> LoadedCogs:
         removed = set(self.cogs)
