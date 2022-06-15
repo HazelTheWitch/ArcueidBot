@@ -56,9 +56,6 @@ class ArcBot(comms.Bot):
     async def on_ready(self) -> None:
         self.logger.info(await self.loadCogs(True))
 
-        game = discord.Game(f'with {len(self.commands)} commands')
-        await self.change_presence(status=discord.Status.online, activity=game)
-
         if self.passthrough.restartMessage is not None:
             await (await self.passthrough.restartMessage.fetchMessage(self)).add_reaction('♥')
 
@@ -83,3 +80,8 @@ class ArcBot(comms.Bot):
         await self.change_presence(status=discord.Status.invisible)
 
         await super().close()
+
+    def generateInviteURL(self, permissions: discord.Permissions, scopes: list[str]) -> str:
+        scopeString = '%20'.join(scopes)
+        return f'https://discord.com/api/oauth2/authorize?client_id={self.application.id}' \
+               f'&permissions={permissions.value}&scope={scopeString} '

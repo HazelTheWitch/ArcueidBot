@@ -1,3 +1,5 @@
+from typing import Optional
+
 import discord
 import discord.ext.commands as comms
 
@@ -14,7 +16,8 @@ class ArcContext(comms.Context):
 
         self.errorHandled = False
 
-    def generateEmbed(self, title: str, description: str, *, error: bool = False) -> discord.Embed:
+    def generateEmbed(self, title: str, description: str, *,
+                      error: bool = False, url: Optional[str] = None) -> discord.Embed:
         """Generate a thememed Discord embed"""
         if error:
             color = discord.Color(0xff1717)
@@ -24,8 +27,8 @@ class ArcContext(comms.Context):
             if color is None:
                 color = discord.Color(self.bot.settings.theme)
 
-        return discord.Embed(title=title, description=description, color=color)
+        return discord.Embed(title=title, description=description, color=color, url=url)
 
-    async def replyEmbed(self, title: str, description: str, *, error: bool = False) -> discord.Message:
+    async def replyEmbed(self, title: str, description: str, *, error: bool = False, mention: bool = False) -> discord.Message:
         """Reply using a themed Discord embed"""
-        return await self.reply(embed=self.generateEmbed(title, description, error=error))
+        return await self.reply(embed=self.generateEmbed(title, description, error=error), mention_author=mention)
