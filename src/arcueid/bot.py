@@ -1,7 +1,7 @@
 import importlib
 import logging
 from inspect import getmembers
-from typing import Optional
+from typing import Optional, Type
 
 import discord
 import discord.ext.commands as comms
@@ -19,7 +19,9 @@ __all__ = [
 
 class ArcBot(comms.Bot):
     def __init__(self, settings: Settings, passthrough: PassthroughInfo) -> None:
-        super().__init__(comms.when_mentioned_or('arc.'), status=discord.Status.idle)
+        super().__init__(command_prefix=comms.when_mentioned,
+                         status=discord.Status.idle,
+                         intents=discord.Intents.default())
 
         self.exitStatus = ExitStatus.EXIT
 
@@ -29,13 +31,11 @@ class ArcBot(comms.Bot):
 
         self.logger = logging.getLogger('arcueid')
 
-        self.logger.info(self.loadCogs(True))
-
-    def loadCogs(self, reload: bool = True) -> LoadedCogs:
+    async def loadCogs(self, reload: bool = True) -> LoadedCogs:
         removed = set(self.cogs)
 
         for name in removed:
-            self.remove_cog(name)
+            await self.remove_cog(name)
             self.logger.debug(f'Removed cog: {name}')
 
         if reload:
@@ -43,17 +43,19 @@ class ArcBot(comms.Bot):
 
         for name, cog in getmembers(cogs):
             if hasattr(cog, '__mro__') and ACog in cog.mro():
-                self.add_cog(cog(self))
+                await self.add_cog(cog(self))
                 self.logger.debug(f'Added cog: {name}')
 
         loaded = set(self.cogs)
 
         return LoadedCogs.fromRemovedLoaded(removed, loaded)
 
-    async def get_context(self, message: discord.Message, *, cls: comms.Context = ArcContext) -> ArcContext:
-        return await super().get_context(message, cls=cls)
+    async def get_context(self, message: discord.Message, *, cls: Optional[Type[comms.Context]] = None) -> ArcContext:
+        return await super().get_context(message, cls=cls or ArcContext)
 
     async def on_ready(self) -> None:
+        self.logger.info(await self.loadCogs(True))
+
         game = discord.Game(f'with {len(self.commands)} commands')
         await self.change_presence(status=discord.Status.online, activity=game)
 

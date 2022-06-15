@@ -15,7 +15,7 @@ __all__ = [
 
 class ACog(comms.Cog):
     def __init__(self, bot: 'ArcBot') -> None:
-        self.bot = bot
+        self.bot: 'ArcBot' = bot
 
     @property
     @abstractmethod

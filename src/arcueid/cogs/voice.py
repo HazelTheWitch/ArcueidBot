@@ -19,7 +19,7 @@ __all__ = [
 
 
 class VoiceCog(ACog):
-    @comms.command(aliases=('connect',))
+    @comms.command(aliases=('connect', 'follow', 'come'))
     async def join(self, ctx: ArcContext) -> None:
         voice = ctx.author.voice
 

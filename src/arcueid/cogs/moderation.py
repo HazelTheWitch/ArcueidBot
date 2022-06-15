@@ -57,7 +57,7 @@ class ModCog(ACog):
         embed.add_field(name='Nickname', value=member.nick, inline=True)
 
         embed.add_field(name='Is Bot', value=str(member.bot), inline=True)
-        embed.add_field(name='Status', value=titleCapitalization(member.status.value), inline=True)
+        embed.add_field(name='Status', value=titleCapitalization(member.status.name), inline=True)
         embed.add_field(name='Joined At', value=member.joined_at.strftime('%Y/%m/%d %H:%M:%S UTC'))
 
         embed.set_image(url=member.avatar_url)
