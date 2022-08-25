@@ -1,15 +1,15 @@
-from datetime import datetime
+import random
 from typing import Optional
 
 import discord
 import discord.ext.commands as comms
-import pytz as pytz
 
 from .abc import ACog
-
 from ..context import ArcContext
 from ..datastructures import ExitStatus, MessageData
 from ..helper import plural
+from ..reactiontree import pagignate
+from .. import VERSION
 
 __all__ = [
     'AdminCog'
@@ -63,6 +63,33 @@ class AdminCog(ACog):
 
         await message.add_reaction('♥')
 
+    @comms.group()
+    async def test(self, ctx: ArcContext) -> None:
+        if ctx.invoked_subcommand is not None:
+            return
+
+        embed = ctx.generateEmbed('Test Information', None)
+
+        embed.add_field(name='Version', value='.'.join(map(str, VERSION)))
+        embed.add_field(name='Available Subcommands', value=len(self.test.commands))
+
+        await ctx.reply(embed=embed)
+
+    @test.command()
+    async def pagignation(self, ctx: ArcContext, items: int, perPage: int) -> None:
+        def randomItem(length: int) -> str:
+            return ''.join(random.sample('0123456789ABCDEF', length))
+
+        selectedItems = [randomItem(8) for _ in range(items)]
+
+        node = pagignate('Test Pagignation', self.color, selectedItems, perPage)
+
+        await self.bot.replyTree(ctx.message, node, 60)
+
     @property
     def color(self) -> Optional[discord.Color]:
         return discord.Color(0xfcba03)
+
+    @property
+    def author(self) -> str:
+        return 'Harlot#0001'

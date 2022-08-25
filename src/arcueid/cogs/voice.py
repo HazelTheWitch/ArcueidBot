@@ -19,7 +19,7 @@ __all__ = [
 
 
 class VoiceCog(ACog):
-    @comms.command(aliases=('connect', 'follow', 'come'))
+    @comms.command(aliases=('connect', 'follow', 'come', 'omghi'))
     async def join(self, ctx: ArcContext) -> None:
         voice = ctx.author.voice
 
@@ -81,56 +81,47 @@ class VoiceCog(ACog):
                                                                             f'**{toVC.name}**')
 
     @comms.command()
-    async def alarm(self, ctx: ArcContext, hour: int, minute: int, timezone: str) -> None:
-        try:
-            tz = pytz.timezone(timezone)
-        except pytz.UnknownTimeZoneError:
-            await ctx.replyEmbed('Invalid Timezone', f'The timezone "{timezone}" you entered is not valid.')
-            return
-
-        if not (0 <= hour < 24):
-            await ctx.replyEmbed('Invalid Hour', f'The hour "{hour}" you entered is not valid.')
-            return
-
-        if not (0 <= minute < 60):
-            await ctx.replyEmbed('Invalid Minute', f'The hour "{minute}" you entered is not valid.')
-            return
-
+    async def voiceInfo(self, ctx: ArcContext) -> None:
         voice = ctx.author.voice
 
         if voice is None or voice.channel is None:
-            await ctx.replyEmbed('Voice Channel Error', 'You are not in a voice channel so I can not play an alarm.')
+            await ctx.replyEmbed('Voice Info Error', 'You are not in a voice channel so I can not perform this command for you.')
             return
 
-        currentVC = self.bot.getCurrentVC(ctx.guild)
+        await ctx.replyEmbed('Voice Info', f'**{len(voice.channel.members)}** members.')
 
-        if currentVC is not None:
-            await currentVC.disconnect()
+    @comms.command()
+    async def borrow(self, ctx: ArcContext, target: discord.Member) -> None:
+        toVClient = ctx.author.voice
+        fromVClient = target.voice
 
-        await voice.channel.connect()
+        if toVClient is None or toVClient.channel is None:
+            await ctx.replyEmbed('Borrow Error', 'You are not in a voice channel so I have no target.')
+            return
 
-        now = pytz.timezone('US/Pacific').localize(datetime.now()).astimezone(tz)
+        if fromVClient is None or fromVClient.channel is None:
+            await ctx.replyEmbed('Borrow Error', 'They are not in a voice channel so I have no source.')
+            return
 
-        targetTime = tz.localize(datetime(now.year, now.month, now.day, hour, minute))
+        toVC = toVClient.channel
 
-        if targetTime < now:
-            targetTime += timedelta(days=1)
+        await fromVClient.channel.connect()
 
-        seconds = (targetTime - now).total_seconds()
+        await asyncio.sleep(0.5)
 
-        await asyncio.sleep(seconds)
+        await target.move_to(toVC, reason=f'{ctx.author} is borrowing them lol')
 
-        with importlib.resources.path('arcueid.data', 'alarm.wav') as sourcePath:
-            print(sourcePath)
+    @comms.command()
+    async def unborrow(self, ctx: ArcContext, target: discord.Member) -> None:
+        targetVc = self.bot.getCurrentVC(ctx.guild)
 
-            source = discord.FFmpegPCMAudio(str(sourcePath.resolve()))
-
-            currentVC = self.bot.getCurrentVC(ctx.guild)
-
-            currentVC.play(source)
-
-            await ctx.replyEmbed('Alarm Up', 'Your alarm has been triggered!')
+        await target.move_to(targetVc.channel)
+        await targetVc.disconnect()
 
     @property
     def color(self) -> Optional[discord.Color]:
         return discord.Color(0x4287f5)
+
+    @property
+    def author(self) -> str:
+        return 'Harlot#0001'

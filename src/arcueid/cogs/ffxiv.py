@@ -10,15 +10,11 @@ from ..helper import plural
 
 
 __all__ = [
-    'ImagesCog'
+    'FFXIVCog'
 ]
 
 
-class ImagesCog(ACog):
-    @comms.command()
-    def toGif(self, ctx: ArcContext) -> None:
-        ...
-
+class FFXIVCog(ACog):
     @property
     def color(self) -> Optional[discord.Color]:
         return discord.Color(0xd834eb)

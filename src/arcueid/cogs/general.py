@@ -1,4 +1,5 @@
 from typing import Optional, Awaitable, Any, Coroutine, Callable
+import random
 
 import discord
 import discord.ext.commands as comms
@@ -50,6 +51,32 @@ class GeneralCog(ACog):
         await self.bot.change_presence(status=discord.Status.online, activity=game)
         self.currentStatusCallback = (self.currentStatusCallback + 1) % len(self.statusCallbacks)
 
+    @comms.command()
+    async def decide(self, ctx: ArcContext, count: int = 1) -> None:
+        things = (
+            'League of Legends',
+            'TFT',
+            'Anime',
+            'FFXIV',
+            'It Takes Two',
+            'We Were Here Forever',
+            'Portal 2',
+            'Terraria',
+            'Minecraft',
+            'Elden Ring',
+            '20 Minutes Till Dawn',
+            'Slay the Spire',
+            'Stardew Valley',
+            'FTL: Faster than Light',
+            'Unrailed'
+        )
+
+        await ctx.replyEmbed('Here is what I decided', ', '.join(random.sample(things, count)))
+
     @property
     def color(self) -> Optional[discord.Color]:
         return discord.Color(0x50cca7)
+
+    @property
+    def author(self) -> str:
+        return 'Harlot#0001'

@@ -21,3 +21,8 @@ class ACog(comms.Cog):
     @abstractmethod
     def color(self) -> Optional[discord.Color]:
         return None
+
+    @property
+    @abstractmethod
+    def author(self) -> str:
+        return ''

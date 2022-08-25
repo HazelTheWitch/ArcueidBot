@@ -16,7 +16,7 @@ class ArcContext(comms.Context):
 
         self.errorHandled = False
 
-    def generateEmbed(self, title: str, description: str, *,
+    def generateEmbed(self, title: str, description: Optional[str], *,
                       error: bool = False, url: Optional[str] = None) -> discord.Embed:
         """Generate a thememed Discord embed"""
         if error:

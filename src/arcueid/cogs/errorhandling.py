@@ -40,10 +40,14 @@ class ErrorHandlingCog(ACog):
                 title = f'Command Error ({type(error).__name__})'
                 description = 'Something went wrong with the command you entered. '\
                               f'```{"".join(traceback.format_exception(cast(Type[BaseException], error), limit=10))}```' \
-                              'Please contact Harlot#0001 about this.'
+                              f'Please contact {ctx.cog.author} about this.'
 
         await ctx.replyEmbed(title=title, description=description, error=True)
 
     @property
     def color(self) -> Optional[discord.Color]:
         return discord.Color(0xff1717)
+
+    @property
+    def author(self) -> str:
+        return 'Harlot#0001'

@@ -67,3 +67,7 @@ class ModCog(ACog):
     @property
     def color(self) -> Optional[discord.Color]:
         return discord.Color(0x037ffc)
+
+    @property
+    def author(self) -> str:
+        return 'Harlot#0001'

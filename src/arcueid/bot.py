@@ -1,7 +1,7 @@
 import importlib
 import logging
 from inspect import getmembers
-from typing import Optional, Type
+from typing import Optional, Type, Any, Union
 
 import discord
 import discord.ext.commands as comms
@@ -11,6 +11,7 @@ from .cogs.abc import ACog
 from .context import ArcContext
 from .datastructures import LoadedCogs, ExitStatus, PassthroughInfo
 from .settings import Settings
+from .reactiontree import displayTree, TreeNode
 
 __all__ = [
     'ArcBot'
@@ -21,7 +22,7 @@ class ArcBot(comms.Bot):
     def __init__(self, settings: Settings, passthrough: PassthroughInfo) -> None:
         super().__init__(command_prefix=comms.when_mentioned,
                          status=discord.Status.idle,
-                         intents=discord.Intents.default())
+                         intents=discord.Intents.default() | discord.Intents(members=True))
 
         self.exitStatus = ExitStatus.EXIT
 
@@ -84,4 +85,10 @@ class ArcBot(comms.Bot):
     def generateInviteURL(self, permissions: discord.Permissions, scopes: list[str]) -> str:
         scopeString = '%20'.join(scopes)
         return f'https://discord.com/api/oauth2/authorize?client_id={self.application.id}' \
-               f'&permissions={permissions.value}&scope={scopeString} '
+               f'&permissions={permissions.value}&scope={scopeString}'
+
+    async def replyTree(self, message: discord.Message, node: TreeNode, timeout: Optional[float] = None) -> tuple[tuple[discord.abc.User, Any], ...]:
+        return await self.displayTree(message, node, allowedUsers=(message.author,), timeout=timeout)
+
+    async def displayTree(self, target: Union[discord.abc.Messageable, discord.Message], node: TreeNode, allowedUsers: Optional[tuple[discord.abc.User]] = None, timeout: Optional[float] = None) -> tuple[tuple[discord.abc.User, Any], ...]:
+        return await displayTree(self, target, node, allowedUsers=allowedUsers, timeout=timeout)

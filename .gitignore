@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 
 settings.json
+
+/venv
+**/*.egg-info
+/build
