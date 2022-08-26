@@ -1,7 +1,7 @@
 import importlib
 import logging
 from inspect import getmembers
-from typing import Optional, Type, Any, Union
+from typing import Optional, Type, Any, Union, cast
 
 import discord
 import discord.ext.commands as comms
@@ -22,7 +22,7 @@ class ArcBot(comms.Bot):
     def __init__(self, settings: Settings, passthrough: PassthroughInfo) -> None:
         super().__init__(command_prefix=comms.when_mentioned,
                          status=discord.Status.idle,
-                         intents=discord.Intents.default() | discord.Intents(members=True))
+                         intents=discord.Intents.default() | discord.Intents(members=True) | discord.Intents(voice_states=True))
 
         self.exitStatus = ExitStatus.EXIT
 
@@ -44,7 +44,11 @@ class ArcBot(comms.Bot):
 
         for name, cog in getmembers(cogs):
             if hasattr(cog, '__mro__') and ACog in cog.mro():
-                await self.add_cog(cog(self))
+                cog = cast(ACog, cog(self))
+                
+                await cog.__ainit__()
+                await self.add_cog(cog)
+
                 self.logger.debug(f'Added cog: {name}')
 
         loaded = set(self.cogs)

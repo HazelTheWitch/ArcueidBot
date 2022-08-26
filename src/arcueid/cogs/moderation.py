@@ -60,7 +60,7 @@ class ModCog(ACog):
         embed.add_field(name='Status', value=titleCapitalization(member.status.name), inline=True)
         embed.add_field(name='Joined At', value=member.joined_at.strftime('%Y/%m/%d %H:%M:%S UTC'))
 
-        embed.set_image(url=member.avatar_url)
+        embed.set_image(url=member.display_avatar.url)
 
         await ctx.reply(embed=embed)
 

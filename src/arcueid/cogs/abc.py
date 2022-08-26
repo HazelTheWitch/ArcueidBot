@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from logging import Logger
 from typing import TYPE_CHECKING, Optional
 
 import discord
@@ -16,6 +17,13 @@ __all__ = [
 class ACog(comms.Cog):
     def __init__(self, bot: 'ArcBot') -> None:
         self.bot: 'ArcBot' = bot
+
+    async def __ainit__(self) -> None:
+        ...
+    
+    @property
+    def logger(self) -> Logger:
+        return self.bot.logger
 
     @property
     @abstractmethod

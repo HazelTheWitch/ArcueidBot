@@ -49,7 +49,7 @@ class VoiceCog(ACog):
         await ctx.replyEmbed('Voice Disconnected', 'Successfully disconnected from the voice channel.')
 
     @comms.command(aliases=('move',))
-    # TODO: Add @comms.require_permissions(move_members=True) and figure out why it wont work
+    @comms.has_guild_permissions(move_members=True)
     async def drag(self, ctx: ArcContext) -> None:
         voice = ctx.author.voice
 
@@ -91,6 +91,7 @@ class VoiceCog(ACog):
         await ctx.replyEmbed('Voice Info', f'**{len(voice.channel.members)}** members.')
 
     @comms.command()
+    @comms.has_guild_permissions(move_members=True)
     async def borrow(self, ctx: ArcContext, target: discord.Member) -> None:
         toVClient = ctx.author.voice
         fromVClient = target.voice
@@ -112,6 +113,7 @@ class VoiceCog(ACog):
         await target.move_to(toVC, reason=f'{ctx.author} is borrowing them lol')
 
     @comms.command()
+    @comms.has_guild_permissions(move_members=True)
     async def unborrow(self, ctx: ArcContext, target: discord.Member) -> None:
         targetVc = self.bot.getCurrentVC(ctx.guild)
 

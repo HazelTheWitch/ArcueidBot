@@ -13,7 +13,8 @@ from dataclasses import dataclass
 __all__ = [
     'TreeNode',
     'pagignate',
-    'displayTree'
+    'pagignate_embeds',
+    'displayTree',
 ]
 
 
@@ -152,6 +153,21 @@ def pagignate(title: str, color: Union[discord.Color, int], options: Sequence[st
 
         node.addTransition('🚫', None)
 
+    return nodes[0]
+
+def pagignate_embeds(embeds: Sequence[discord.Embed]) -> TreeNode:
+    nodes = [TreeNode(embed=embed) for embed in embeds]
+
+    for i, node in enumerate(nodes):
+        if i > 0:  # Can go backwards so add first and back
+            node.addTransition('⏪', nodes[0])
+            node.addTransition('◀️', nodes[i - 1])
+        if i < len(nodes) - 1:  # Can go forwards so add last and forward
+            node.addTransition('▶️', nodes[i + 1])
+            node.addTransition('⏩', nodes[-1])
+
+        node.addTransition('🚫', None)
+    
     return nodes[0]
 
 
