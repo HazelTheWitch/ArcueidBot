@@ -4,3 +4,4 @@ from .moderation import *
 from .voice import *
 from .general import *
 from .social import *
+from .gacha import *

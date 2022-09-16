@@ -69,6 +69,8 @@ def launch(path: str, verbose: int) -> None:
 
 
 async def mainLoop(data: Settings) -> None:
+    from . import bot as abot
+    
     passthrough = PassthroughInfo()
 
     while True:
@@ -88,6 +90,7 @@ async def mainLoop(data: Settings) -> None:
                 return
             case ExitStatus.RESTART.value:
                 reload(abot)
+                from . import bot as abot
             case ExitStatus.RESTART_NO_RELOAD.value:
                 pass
 

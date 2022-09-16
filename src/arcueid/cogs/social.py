@@ -29,7 +29,10 @@ class Group:
     pressences: list['VoicePressence']
 
     @classmethod
-    def from_dict(cls, channel: Union[discord.VoiceChannel, discord.StageChannel], group: GROUP) -> 'Group':
+    def from_dict(cls, channel: Union[discord.VoiceChannel, discord.StageChannel], group: GROUP) -> Optional['Group']:
+        if len(group.values()) == 0:
+            return None
+
         return cls(channel, [
             pressence for pressence in group.values()
         ])
@@ -151,7 +154,9 @@ class SocialCog(ACog):
             channel = self.bot.get_channel(channel_id)
 
             if channel.guild.get_member(member.id) is not None and channel.permissions_for(member).connect:
-                groups.append(Group.from_dict(channel, group))
+                group = Group.from_dict(channel, group)
+                if group is not None:
+                    groups.append(group)
         
         return groups
     
@@ -170,7 +175,7 @@ class SocialCog(ACog):
         embeds = []
 
         for group in groups:
-            embed = ctx.generateEmbed(group.channel.name, f"In the server **{group.channel.guild.name}**.\nUsers in the voice channel: ```{', '.join(map(str, group.members))}```\nClick the title of this embed to go there!", url=group.channel.jump_url)
+            embed = ctx.generateEmbed(f'{group.channel.name} ({len(embeds)+1} / {len(groups)})', f"In the server **{group.channel.guild.name}**.\nUsers in the voice channel: ```{', '.join(map(str, group.members))}```\nClick the title of this embed to go there!", url=group.channel.jump_url)
 
             embed.add_field(name="Users", value=group.total, inline=True)
             embed.add_field(name="Active", value=group.active, inline=True)

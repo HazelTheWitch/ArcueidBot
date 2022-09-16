@@ -10,6 +10,7 @@ __all__ = [
 @dataclass(frozen=True)
 class Settings:
     token: str
+    google_credentials: str
     theme: int = 0xf1abe
 
     def save(self, fp: Path) -> None:

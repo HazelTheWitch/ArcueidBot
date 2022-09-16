@@ -9,9 +9,11 @@ dynamic = ["version"]
 readme = "README.md"
 description = "A simple discord bot for finding groups of friends to talk to!"
 dependencies = [
-    "discord.py==2.0.0",
+    "discord.py[voice]==2.0.0",
     "click==8.1.3",
-    "pytz"
+    "pytz",
+    "pygsheets",
+    "numpy",
 ]
 
 [tool.setuptools.dynamic]
