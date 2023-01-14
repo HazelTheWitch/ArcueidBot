@@ -21,13 +21,17 @@ __all__ = [
 class VoiceCog(ACog):
     @comms.command(aliases=('connect', 'follow', 'come', 'omghi'))
     async def join(self, ctx: ArcContext) -> None:
+        if not isinstance(ctx.author, discord.Member):
+            await ctx.replyEmbed('Connect Failed', 'You are not in a voice channel so I can not join you.')
+            return
+
         voice = ctx.author.voice
 
         if voice is None or voice.channel is None:
             await ctx.replyEmbed('Connect Failed', 'You are not in a voice channel so I can not join you.')
             return
 
-        currentVC = self.bot.getCurrentVC(ctx.guild)
+        currentVC = self.bot.getCurrentVC(ctx.author.guild)
 
         if currentVC is not None:
             await currentVC.disconnect()
@@ -38,7 +42,11 @@ class VoiceCog(ACog):
 
     @comms.command(aliases=('disconnect',))
     async def leave(self, ctx: ArcContext) -> None:
-        vc = self.bot.getCurrentVC(ctx.guild)
+        if not isinstance(ctx.author, discord.Member):
+            await ctx.replyEmbed('Disconnect Failed', 'Not currently connected to a voice channel.')
+            return
+
+        vc = self.bot.getCurrentVC(ctx.author.guild)
 
         if vc is None:
             await ctx.replyEmbed('Disconnect Failed', 'Not currently connected to a voice channel.')
@@ -81,7 +89,54 @@ class VoiceCog(ACog):
                                                                             f'**{toVC.name}**')
 
     @comms.command()
+    @comms.has_guild_permissions(move_members=True)
+    async def trigger(self, ctx: ArcContext, target: discord.Member) -> None:
+        if not isinstance(ctx.author, discord.Member):
+            await ctx.replyEmbed('Trigger Error', 'You are not in a voice channel so I can not create a trigger for you.')
+            return
+
+        voice = ctx.author.voice
+
+        if voice is None or voice.channel is None:
+            await ctx.replyEmbed('Trigger Error', 'You are not in a voice channel so I can not create a trigger for you.')
+            return
+
+        to_channel = voice.channel
+
+        target_voice = target.voice
+
+        if target_voice:
+            await target.move_to(to_channel, reason=f"trigger by {ctx.author}")
+            await ctx.replyEmbed("Trigger Activated", "The trigger set up was activated")
+            return
+
+        def check(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState) -> bool:
+            if member != target:
+                return False
+            
+            if after.channel is not None:
+                return True
+            
+            return False
+
+        target, _, _ = self.bot.wait_for("voice_stateee_update", check=check)
+
+        target_voice = target.voice
+
+        if target_voice:
+            await target.move_to(to_channel, reason=f"trigger by {ctx.author}")
+            await ctx.replyEmbed("Trigger Activated", "The trigger set up was activated")
+            return
+        else:
+            await ctx.replyEmbed("Could not Trigger", "The trigger set up could not be activated", error=True)
+            return
+
+    @comms.command()
     async def voiceInfo(self, ctx: ArcContext) -> None:
+        if not isinstance(ctx.author, discord.Member):
+            await ctx.replyEmbed('Voice Info Error', 'You are not in a voice channel so I can not perform this command for you.')
+            return
+        
         voice = ctx.author.voice
 
         if voice is None or voice.channel is None:

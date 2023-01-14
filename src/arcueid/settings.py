@@ -11,7 +11,7 @@ __all__ = [
 class Settings:
     token: str
     google_credentials: str
-    theme: int = 0xf1abe
+    theme: int = 0xf1a7be
 
     def save(self, fp: Path) -> None:
         with fp.open('w') as settings:

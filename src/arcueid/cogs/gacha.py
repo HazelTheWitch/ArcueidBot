@@ -1,5 +1,3 @@
-import email
-import enum
 from math import ceil, floor
 from typing import Optional
 
@@ -148,7 +146,7 @@ class GachaCog(ACog):
         print(self.gc)
 
     @comms.command()
-    async def gacha(self, ctx: ArcContext) -> None:
+    async def spent(self, ctx: ArcContext) -> None:
         sheet = self.gc.open_by_key("175PMTH9KkWQfL08VLPvrZaBJfeFArToYZztikW2ky1U")
 
         summary: pygsheets.Worksheet = sheet.worksheet()
@@ -165,71 +163,74 @@ class GachaCog(ACog):
 
         await ctx.reply(embed=embed)
     
-    @comms.hybrid_command()
-    async def pulls(self, ctx: ArcContext,
-        copies: int = comms.parameter(default=1, description="the target constellation level of the character"),
-        starting_pity: int = comms.parameter(default=0, description="the pity you start at"),
-        lost_previous: bool = comms.parameter(default=False, description="whether or not the previous 50/50 or 75/25 was lost"),
-        units: str = comms.parameter(default="Pulls", description="what units to return the data in"),
-        banner: str = comms.parameter(default="Character", description="which banner type to simulate"),
-        fate_points: int = comms.parameter(default=0, description="the number of fate points you start with, useless with regards to the character banner")) -> None:
-        """Calculates the number of pulls to obtain a specific constellation level of a 5* character"""
-        if units not in ["Pulls", "Optimal USD", "Minimal USD"]:
-            await ctx.replyEmbed("Invalid Units", f"{units} is not a valid unit type.")
-            return
+    # @comms.hybrid_command()
+    # async def pulls_old(self, ctx: ArcContext,
+    #     copies: int = comms.parameter(default=1, description="the target constellation level of the character"),
+    #     starting_pity: int = comms.parameter(default=0, description="the pity you start at"),
+    #     lost_previous: bool = comms.parameter(default=False, description="whether or not the previous 50/50 or 75/25 was lost"),
+    #     units: str = comms.parameter(default="Pulls", description="what units to return the data in"),
+    #     banner: str = comms.parameter(default="Character", description="which banner type to simulate"),
+    #     fate_points: int = comms.parameter(default=0, description="the number of fate points you start with, useless with regards to the character banner")) -> None:
+    #     """Calculates the number of pulls to obtain a specific constellation level of a 5* character"""
+    #     if units not in ["Pulls", "Optimal USD", "Minimal USD"]:
+    #         await ctx.replyEmbed("Invalid Units", f"{units} is not a valid unit type.")
+    #         return
 
-        if banner not in ["Character", "Weapon"]:
-            await ctx.replyEmbed("Invalid Banner", f"{banner} is not a valid banner.")
-            return
+    #     if banner not in ["Character", "Weapon"]:
+    #         await ctx.replyEmbed("Invalid Banner", f"{banner} is not a valid banner.")
+    #         return
 
-        match banner:
-            case "Weapon":
-                copies = min(max(copies, 1), 5)
-            case "Character":
-                copies = min(max(copies, 1), 7)
+    #     match banner:
+    #         case "Weapon":
+    #             copies = min(max(copies, 1), 5)
+    #         case "Character":
+    #             copies = min(max(copies, 1), 7)
 
-        def convert(value: int) -> float:
-            match units:
-                case "Pulls":
-                    return float(value)
-                case "Minimal USD":
-                    return optimal(value)
-                case "Optimal USD":
-                    return 99.99 * value * 160 / 8080
+    #     def convert(value: int) -> float:
+    #         match units:
+    #             case "Pulls":
+    #                 return float(value)
+    #             case "Minimal USD":
+    #                 return optimal(value)
+    #             case "Optimal USD":
+    #                 return 99.99 * value * 160 / 8080
+    #         return -1
 
-        async with ctx.typing():
-            match banner:
-                case "Character":
-                    data = [convert(c(copies - 1, starting_pity, lost_previous)) for _ in range(10000)]
-                case "Weapon":
-                    data = [convert(r(copies, starting_pity, lost_previous, fate_points)) for _ in range(10000)]
+    #     async with ctx.typing():
+    #         match banner:
+    #             case "Character":
+    #                 data = [convert(c(copies - 1, starting_pity, lost_previous)) for _ in range(10000)]
+    #             case "Weapon":
+    #                 data = [convert(r(copies, starting_pity, lost_previous, fate_points)) for _ in range(10000)]
+    #             case _:
+    #                 data = []
 
-            lines = []
+    #         lines = []
 
-            lines.append(f"Average: {sum(data) / len(data):.2f}")
-            lines.append(f"Standard Deviation: {statistics.stdev(data):.2f}")
-            lines.append(f"Percentiles:")
+    #         lines.append(f"Average: {sum(data) / len(data):.2f}")
+    #         lines.append(f"Standard Deviation: {statistics.stdev(data):.2f}")
+    #         lines.append(f"Percentiles:")
 
-            for i, value in enumerate(statistics.quantiles(data, n=10)):
-                lines.append(f"    {(i + 1) * 10}: {value:.2f}")
+    #         for i, value in enumerate(statistics.quantiles(data, n=10)):
+    #             lines.append(f"    {(i + 1) * 10}: {value:.2f}")
 
-            lines.append(f"    99: {statistics.quantiles(data, n=100)[-1]:.2f}")
+    #         lines.append(f"    99: {statistics.quantiles(data, n=100)[-1]:.2f}")
 
-            block = '\n'.join(lines)
+    #         block = '\n'.join(lines)
 
-            await ctx.replyEmbed(f"Pulls to get **{copies}** copies on the {banner} banner", f"Copies: **{copies}**, Banner: **{banner}**, Starting Pity: **{starting_pity}**, Guaranteed: **{lost_previous}**, Units: **{units}**, Fate Points: **{fate_points}**\n```{block}```")
+    #         await ctx.replyEmbed(f"Pulls to get **{copies}** copies on the {banner} banner", f"Copies: **{copies}**, Banner: **{banner}**, Starting Pity: **{starting_pity}**, Guaranteed: **{lost_previous}**, Units: **{units}**, Fate Points: **{fate_points}**\n```{block}```")
     
-    @pulls.autocomplete('units')
-    async def units_autocomplete(self, interaction: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
-        choices = ["Pulls", "Optimal USD", "Minimal USD"]
+    # @pulls_old.autocomplete('units')
+    # async def units_autocomplete(self, interaction: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
+    #     choices = ["Pulls", "Optimal USD", "Minimal USD"]
 
-        return [discord.app_commands.Choice(name=choice, value=choice) for choice in choices if current.lower() in choice.lower()]
+    #     return [discord.app_commands.Choice(name=choice, value=choice) for choice in choices if current.lower() in choice.lower()]
     
-    @pulls.autocomplete('banner')
-    async def units_autocomplete(self, interaction: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
-        choices = ["Character", "Weapon"]
+    # @pulls_old.autocomplete('banner')
+    # async def banner_autocomplete(self, interaction: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
+    #     choices = ["Character", "Weapon"]
 
-        return [discord.app_commands.Choice(name=choice, value=choice) for choice in choices if current.lower() in choice.lower()]
+    #     return [discord.app_commands.Choice(name=choice, value=choice) for choice in choices if current.lower() in choice.lower()]
 
     @property
     def color(self) -> Optional[discord.Color]:

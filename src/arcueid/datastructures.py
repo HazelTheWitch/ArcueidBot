@@ -43,13 +43,15 @@ class ExitStatus(Enum):
 
 @dataclass(frozen=True)
 class MessageData:
-    guild: int
     channel: int
     message: int
 
-    async def fetchMessage(self, client: discord.Client) -> discord.Message:
-        guild = client.get_guild(self.guild)
-        channel = guild.get_channel(self.channel)
+    async def fetchMessage(self, client: discord.Client) -> discord.Message | None:
+        channel = client.get_channel(self.channel)
+        
+        if channel is None or isinstance(channel, discord.StageChannel | discord.CategoryChannel | discord.ForumChannel):
+            return None
+        
         return await channel.fetch_message(self.message)
 
     @classmethod
